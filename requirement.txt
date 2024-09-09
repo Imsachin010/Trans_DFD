@@ -1,5 +1,7 @@
 streamlit
+keras
 numpy
 tensorflow
 opencv-python
+requests
 h5py
