@@ -44,43 +44,86 @@ def aggregate_video_results(predictions):
 # Load pre-trained model
 @st.cache_resource
 def load_meso_model():
-    return load_model('model/mesonet_model.h5')  
+    return load_model('mesonet_model.h5')  
+
+# Custom CSS to enhance the look
+st.markdown("""
+    <style>
+    .title {
+        font-size: 40px;
+        font-weight: bold;
+        color: #4CAF50;
+        text-align: center;
+    }
+    .sub-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2E7D32;
+        text-align: center;
+    }
+    .result-text {
+        font-size: 28px;
+        font-weight: bold;
+        color: #F57C00;
+        text-align: center;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 # Streamlit app
-st.title("Deepfake Video Detection")
+st.markdown('<h1 class="title">Deepfake Video Detection</h1>', unsafe_allow_html=True)
 
-uploaded_video = st.file_uploader("Upload a video for deepfake detection", type=["mp4", "avi", "mov"])
+# File uploader section with columns
+st.markdown('<h3 class="sub-title">Upload a video for deepfake detection</h3>', unsafe_allow_html=True)
+uploaded_video = st.file_uploader("", type=["mp4", "avi", "mov"])
 
 if uploaded_video is not None:
-    
     video_path = f"temp_{uploaded_video.name}"
+    
+    # Save the uploaded video to a temporary file
     with open(video_path, "wb") as f:
         f.write(uploaded_video.getbuffer())
 
+    # Display the uploaded video
     st.video(uploaded_video)
 
-    # Extract frames from the video
-    st.write("Extracting frames from video...")
-    frames_folder = 'extracted_frames'
-    frames = extract_frames(video_path, frames_folder, frame_rate=30)  # Extract every 30th frame
-    st.write(f"Extracted {len(frames)} frames")
+    # Create columns for better layout
+    col1, col2 = st.columns([1, 3])
+    
+    with col1:
+        st.write("### Extracting frames from video...")
+    
+    with col2:
+        # Progress bar
+        progress_text = st.empty()
+        progress_bar = st.progress(0)
+
+        # Extract frames from the video
+        frames_folder = 'extracted_frames'
+        frames = extract_frames(video_path, frames_folder, frame_rate=30)  # Extract every 30th frame
+        progress_bar.progress(50)
+        progress_text.text(f"Extracted {len(frames)} frames")
 
     # Load the model
     model = load_meso_model()
 
     # Predict deepfake likelihood for each frame
-    st.write("Analyzing frames for deepfake...")
+    st.write("### Analyzing frames for deepfake...")
     predictions = []
-    for frame_path in frames:
+    
+    for i, frame_path in enumerate(frames):
         pred = detect_deepfake_on_frame(model, frame_path)
         predictions.append(pred)
+        progress_bar.progress(50 + int(50 * (i + 1) / len(frames)))  # Update progress
 
     # Aggregate results
     final_result = aggregate_video_results(predictions)
-    st.write(f"Final verdict: **{final_result}**")
+    st.markdown(f'<h2 class="result-text">Final Verdict: {final_result}</h2>', unsafe_allow_html=True)
 
     # Cleanup: remove saved video and frames
     os.remove(video_path)
     for frame_path in frames:
         os.remove(frame_path)
     os.rmdir(frames_folder)
+else:
+    st.info("Please upload a video to start the detection process.")
