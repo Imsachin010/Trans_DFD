@@ -44,7 +44,7 @@ def aggregate_video_results(predictions):
 # Load pre-trained model
 @st.cache_resource
 def load_meso_model():
-    return load_model('mesonet_model.h5')  
+    return load_model('./model/mesonet_model.h5')  
 
 # Custom CSS to enhance the look
 st.markdown("""
