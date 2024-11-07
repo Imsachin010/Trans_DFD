@@ -1,4 +1,4 @@
-# Deepfake Detection Solution
+# Deepfake-guard-AI : A Deepfake Detection Solution
 
 ## Proposed Solution
 We propose an effective Deepfake detection system by leveraging Deep Learning models at a mesoscopic level of analysis. Our approach uses a deep neural network architecture with a minimal number of layers, specifically designed to identify falsified videos.
